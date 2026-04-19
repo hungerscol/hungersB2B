@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user in the Hungers platform (Client, Cook, Company Admin, or Super Admin).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["cliente", "cocinero", "admin_empresa", "super_admin"] },
+        "registrationDate": { "type": "string", "format": "date-time" },
+        "location": { "type": "string" },
+        "credits": { "type": "number" },
+        "companyId": { "type": "string" },
+        "companyName": { "type": "string" },
+        "cookId": { "type": "string" },
+        "verificationStatus": { "type": "string", "enum": ["pendiente_verificacion", "aprobado", "rechazado"] }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "MenuItem": {
+      "title": "MenuItem",
+      "description": "A dish offered by a cook.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "cookId": { "type": "string" },
+        "cookName": { "type": "string" },
+        "price": { "type": "number" },
+        "currency": { "type": "string" },
+        "location": { "type": "string" },
+        "rating": { "type": "number" },
+        "ingredients": { "type": "array", "items": { "type": "string" } },
+        "availableDate": { "type": "string", "format": "date" }
+      },
+      "required": ["id", "name", "cookId", "price"]
+    },
+    "Company": {
+      "title": "Company",
+      "description": "A corporate client.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "nit": { "type": "string" },
+        "totalCredits": { "type": "number" },
+        "location": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A purchase made by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "items": { "type": "array" },
+        "total": { "type": "number" },
+        "date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pendiente", "pagado", "entregado", "cancelado"] }
+      },
+      "required": ["id", "userId", "total", "date", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles."
+    },
+    "/menuItems/{itemId}": {
+      "schema": "MenuItem",
+      "description": "Available dishes."
+    },
+    "/companies/{companyId}": {
+      "schema": "Company",
+      "description": "Corporate entities."
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders."
+    }
+  }
+}

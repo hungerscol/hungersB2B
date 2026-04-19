@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hungers - Almuerzos con Propósito</title>
+    <meta name="description" content="Plataforma B2B que conecta empresas con cocineros locales para almuerzos saludables e impacto social." />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.hungers.com.co/">
+    <meta property="og:title" content="Hungers - Almuerzos con Propósito">
+    <meta property="og:description" content="Conectamos empresas con cocineros locales para transformar el almuerzo corporativo en impacto social.">
+    <meta property="og:image" content="https://storage.googleapis.com/ai-studio-bucket-1052854456789-us-west1/Empresas/Logo_HUNGERS%20(2).png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://www.hungers.com.co/">
+    <meta property="twitter:title" content="Hungers - Almuerzos con Propósito">
+    <meta property="twitter:description" content="Conectamos empresas con cocineros locales para transformar el almuerzo corporativo en impacto social.">
+    <meta property="twitter:image" content="https://storage.googleapis.com/ai-studio-bucket-1052854456789-us-west1/Empresas/Logo_HUNGERS%20(2).png">
+    
+    <!-- Optimizaciones de Red -->
+    <link rel="preconnect" href="https://storage.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','%VITE_GTM_ID%');</script>
+    <!-- End Google Tag Manager -->
+
+    <style>
+      body { font-family: 'Roboto', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+      h1, h2, h3, h4 { font-family: 'Nunito', sans-serif; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+      .img-container { position: relative; overflow: hidden; background-color: #f3f4f6; }
+      
+      @media print {
+        body * { visibility: hidden; }
+        #report-section, #report-section * { visibility: visible; }
+        #report-section { position: absolute; left: 0; top: 0; width: 100%; }
+        .no-print { display: none !important; }
+      }
+
+      /* Estilos para el overlay de error */
+      #app-error-overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: white; z-index: 9999;
+        flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; padding: 20px;
+      }
+      .spinner {
+        width: 40px; height: 40px; border: 4px solid #c1ff72; 
+        border-top-color: #2c5234; border-radius: 50%; 
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+
+    <script>
+      // Polyfill esencial para entorno de navegador
+      window.process = { env: { API_KEY: '' } };
+      
+      // Limpiador de emergencia si hay corrupción de caché
+      window.forceClearAppCache = function() {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.reload(true);
+      };
+    </script>
+
+</head>
+<body class="bg-gray-50">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=%VITE_GTM_ID%"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <div id="root">
+        <div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div class="spinner"></div>
+            <p style="margin-top: 20px; color: #2c5234; font-weight: 900; font-family: 'Nunito', sans-serif; font-size: 12px; letter-spacing: 2px;">INICIANDO HUNGERS...</p>
+        </div>
+    </div>
+
+    <!-- Overlay de recuperación en caso de errores críticos de carga -->
+    <div id="app-error-overlay">
+        <h1 style="color: #2c5234; font-family: 'Nunito', sans-serif; font-weight: 900;">Ocurrió un problema</h1>
+        <p style="color: #666; max-width: 300px; margin-top: 10px;">La aplicación no pudo cargar sus componentes básicos por un conflicto de versiones en el navegador.</p>
+        <button onclick="window.forceClearAppCache()" style="background: #2c5234; color: #c1ff72; border: none; padding: 15px 30px; border-radius: 20px; font-weight: 900; cursor: pointer; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px;">Reintentar ahora</button>
+    </div>
+
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

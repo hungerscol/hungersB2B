@@ -1,0 +1,216 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Hungers API",
+    "description": "API para la plataforma Hungers, conectando empresas, cocineros y clientes.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Servidor de desarrollo local"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Verifica el estado de la API",
+        "tags": ["Status"],
+        "responses": {
+          "200": {
+            "description": "API está funcionando correctamente",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Hungers API running 🚀"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Inicia sesión de un usuario",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Registra un nuevo usuario",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario registrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de registro inválidos"
+          }
+        }
+      }
+    },
+    "/menus": {
+      "get": {
+        "summary": "Obtiene los menús disponibles",
+        "tags": ["Menús"],
+        "parameters": [
+          {
+            "name": "pais",
+            "in": "query",
+            "required": true,
+            "description": "Código de país (ej. CO, MX) para filtrar los menús.",
+            "schema": {
+              "type": "string",
+              "enum": ["CO", "MX"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de menús para el país seleccionado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MenuItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reportes": {
+      "get": {
+        "summary": "Genera reportes",
+        "tags": ["Reportes"],
+        "parameters": [
+          {
+            "name": "desde",
+            "in": "query",
+            "required": true,
+            "description": "Fecha de inicio del reporte (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": true,
+            "description": "Fecha de fin del reporte (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte generado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalVentas": { "type": "number" },
+                    "pedidosCompletados": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No autorizado para ver reportes"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["Super Admin", "Admin Empresa", "Cocinero", "Cliente"] }
+        }
+      },
+      "MenuItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "price": { "type": "number" },
+          "currency": { "type": "string", "enum": ["MXN", "COP"] },
+          "cookId": { "type": "string" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "format": "password" },
+          "role": { "type": "string", "enum": ["Super Admin", "Admin Empresa", "Cocinero", "Cliente"] }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      }
+    }
+  }
+}

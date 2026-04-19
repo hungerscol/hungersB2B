@@ -1,0 +1,39 @@
+
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Hungers API",
+    "description": "API para la plataforma Hungers, conectando empresas, cocineros y clientes.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://hungers.com.co",
+      "description": "Servidor de Producción Oficial"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Verifica el estado de la API",
+        "tags": ["Status"],
+        "responses": {
+          "200": {
+            "description": "API está funcionando correctamente"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Inicia sesión de un usuario",
+        "tags": ["Autenticación"],
+        "responses": {
+          "200": {
+            "description": "Login exitoso"
+          }
+        }
+      }
+    }
+  }
+}

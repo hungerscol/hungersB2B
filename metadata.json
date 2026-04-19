@@ -1,0 +1,7 @@
+{
+  "name": "Hungers - Nuevo",
+  "description": "La plataforma B2B líder en Latinoamérica que conecta empresas con cocineros locales para transformar el almuerzo corporativo.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
