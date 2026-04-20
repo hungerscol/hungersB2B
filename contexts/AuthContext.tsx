@@ -71,24 +71,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      findUserByEmail(firebaseUser.email!)
-        .then((profile) => {
-          if (!mounted) return;
-          if (profile) {
-            setUser(profile);
-          } else {
-            const savedSession = localStorage.getItem('hungers_user_session');
-            if (savedSession) {
-              try {
-                setUser(JSON.parse(savedSession));
-              } catch (e) {
-                setUser(null);
-              }
-            } else {
-              setUser(null);
-            }
-          }
-        })
+      const savedSession = localStorage.getItem('hungers_user_session');
+if (savedSession) {
+  try {
+    setUser(JSON.parse(savedSession));
+  } catch (e) {
+    setUser(null);
+  }
+} else {
+  findUserByEmail(firebaseUser.email!)
+    .then((profile) => {
+      if (!mounted) return;
+      if (profile) setUser(profile);
+      else setUser(null);
+    })
+    .catch((error) => {
+      console.error("Auth: Error cargando perfil:", error);
+      setUser(null);
+    });
+}
         .catch((error) => {
           console.error("Auth: Error cargando perfil:", error);
           const savedSession = localStorage.getItem('hungers_user_session');
@@ -100,6 +101,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
           }
         });
+
 
     return () => {
       mounted = false;
