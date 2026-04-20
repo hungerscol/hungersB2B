@@ -117,7 +117,7 @@ const AddEditMenuModal: React.FC<AddEditMenuModalProps> = ({ menu, onClose, onSa
             if (menu) { 
                 await updateMenuItem(menu.id, sharedData);
             } else { 
-                await addMenuItem(targetLocation, sharedData);
+                await addMenuItem({ ...sharedData, location: targetLocation });
             }
             
             setIsSuccess(true);
