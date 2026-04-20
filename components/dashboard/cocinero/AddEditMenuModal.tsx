@@ -81,7 +81,7 @@ const AddEditMenuModal: React.FC<AddEditMenuModalProps> = ({ menu, onClose, onSa
             
             if (imageFile) {
                 try {
-                    finalImageUrl = await uploadProductImage(imageFile);
+                    finalImageUrl = await uploadProductImage(imageFile, `productos/${Date.now()}_${imageFile.name}`);
                 } catch (uploadError: any) {
                     alert(uploadError.message || "Error al subir imagen.");
                     setIsSaving(false);
