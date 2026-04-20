@@ -71,37 +71,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      const savedSession = localStorage.getItem('hungers_user_session');
-if (savedSession) {
-  try {
-    setUser(JSON.parse(savedSession));
-  } catch (e) {
-    setUser(null);
-  }
-} else {
-  findUserByEmail(firebaseUser.email!)
-    .then((profile) => {
-      if (!mounted) return;
-      if (profile) setUser(profile);
-      else setUser(null);
-    })
-    .catch((error) => {
-      console.error("Auth: Error cargando perfil:", error);
-      setUser(null);
-    });
-}
+      const localSession = localStorage.getItem('hungers_user_session');
+      if (localSession) {
+        try {
+          setUser(JSON.parse(localSession));
+          return;
+        } catch (e) {}
+      }
+
+      findUserByEmail(firebaseUser.email!)
+        .then((profile) => {
+          if (!mounted) return;
+          if (profile) {
+            setUser(profile);
+          } else {
+            setUser(null);
+          }
+        })
         .catch((error) => {
           console.error("Auth: Error cargando perfil:", error);
-          const savedSession = localStorage.getItem('hungers_user_session');
-          if (savedSession) {
-            try {
-              setUser(JSON.parse(savedSession));
-            } catch (e) {
-              setUser(null);
-            }
-          }
+          setUser(null);
         });
-
+    }, (error) => {
+      console.error("Auth: Error en observador Firebase:", error);
+      if (mounted) setLoading(false);
+    });
 
     return () => {
       mounted = false;
