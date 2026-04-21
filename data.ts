@@ -158,7 +158,7 @@ export const updateUser = async (userId: string, data: Partial<User>): Promise<v
     await updateDoc(doc(db, 'users', userId), data);
 };
 export const getAllClients = async (): Promise<User[]> => {
-    const q = query(collection(db, 'users'), where('role', '==', 'cliente'));
+    const q = query(collection(db, 'users'), where('role', '==', UserRole.Cliente));
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() })) as User[];
 };
