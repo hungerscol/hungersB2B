@@ -17,7 +17,7 @@ const ClientManagement: React.FC = () => {
 
     const handleViewDetails = (client: User) => {
         setSelectedClient(client);
-        getOrdersByUserId(client.id).then(setClientOrders);
+        getOrdersByUserId(client.id).then(orders => setClientOrders(orders || []));
     };
     
     const formatCurrency = (price: number, currency: string = 'USD') => {
