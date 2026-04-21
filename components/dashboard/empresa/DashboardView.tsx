@@ -108,7 +108,7 @@ interface DashboardViewProps {
     onNavigate: (view: string) => void;
 }
 
-const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
+const DashboardView: React.FC<Partial<DashboardViewProps>> = ({ onNavigate = () => {} }) => {
     const { user } = useAuth();
     const [company, setCompany] = useState<Company | null>(null);
     const [employees, setEmployees] = useState<User[]>([]);
@@ -139,7 +139,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
                 const totalLunches = allEmployeeOrders.flat().reduce((total: number, order: Order) => {
                     const orderDate = new Date(order.date);
                     if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
-                        return total + order.items.length;
+                        return total + (order.items?.length || 0);
                     }
                     return total;
                 }, 0);
