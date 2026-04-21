@@ -1,3 +1,4 @@
+import { User, UserRole, Order, Company, MenuItem } from './types';
 import {
     collection, getDocs, getDoc, addDoc, setDoc, deleteDoc,
     doc, query, where, onSnapshot, updateDoc, orderBy
