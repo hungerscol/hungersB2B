@@ -215,7 +215,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         email: emailLower,
         id: firebaseUser.uid,
         role,
-        cookId: role === UserRole.Cocinero ? firebaseUser.uid : undefined,
+        ...(role === UserRole.Cocinero && { cookId: firebaseUser.uid }),
         verificationStatus: role === UserRole.Cocinero ? "pendiente_verificacion" : "aprobado",
         registrationDate: new Date().toISOString(),
       };
@@ -223,6 +223,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       delete (newProfile as any).password;
       await registerUserInFirestore(newProfile);
       setUser(newProfile);
+      localStorage.setItem('hungers_user_session', JSON.stringify(newProfile));
 
       return { success: true, message: "Registro exitoso" };
     } catch (error: any) {
