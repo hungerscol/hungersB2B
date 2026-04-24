@@ -221,11 +221,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
 
       delete (newProfile as any).password;
-      await registerUserInFirestore(newProfile);
+
+      try {
+        await registerUserInFirestore(newProfile);
+      } catch (firestoreError) {
+        console.error("Auth: Error guardando en Firestore, reintentando...", firestoreError);
+        await new Promise(r => setTimeout(r, 1000));
+        await registerUserInFirestore(newProfile);
+      }
+
       setUser(newProfile);
       localStorage.setItem('hungers_user_session', JSON.stringify(newProfile));
-
       return { success: true, message: "Registro exitoso" };
+
     } catch (error: any) {
       console.error("Auth: Register Error:", error);
       return { success: false, message: error?.message || "Error en el registro." };
