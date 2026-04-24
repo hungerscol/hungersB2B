@@ -159,9 +159,12 @@ export const updateUser = async (userId: string, data: Partial<User>): Promise<v
     await updateDoc(doc(db, 'users', userId), data);
 };
 export const getAllClients = async (): Promise<User[]> => {
-    const q = query(collection(db, 'users'), where('role', '==', UserRole.Cliente));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() })) as User[];
+    const [snap1, snap2] = await Promise.all([
+        getDocs(query(collection(db, 'users'), where('role', '==', 'Cliente'))),
+        getDocs(query(collection(db, 'users'), where('role', '==', 'cliente'))),
+    ]);
+    const docs = [...snap1.docs, ...snap2.docs];
+    return docs.map(d => ({ id: d.id, ...d.data() })) as User[];
 };
 
 export const deductUserCredits = async (userId: string, amount: number): Promise<void> => {
@@ -199,9 +202,11 @@ export const deleteEmployee = async (employeeId: string): Promise<void> => {
 // COOKS
 // --------------------
 export const getAllCooks = async (): Promise<User[]> => {
-    const q = query(collection(db, 'users'), where('role', '==', 'cocinero'));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() })) as User[];
+    const [snap1, snap2] = await Promise.all([
+        getDocs(query(collection(db, 'users'), where('role', '==', 'Cocinero'))),
+        getDocs(query(collection(db, 'users'), where('role', '==', 'cocinero'))),
+    ]);
+    return [...snap1.docs, ...snap2.docs].map(d => ({ id: d.id, ...d.data() })) as User[];
 };
 
 export const updateCook = async (cookId: string, data: Partial<User>): Promise<void> => {
