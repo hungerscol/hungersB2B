@@ -33,15 +33,22 @@ const MenuItemModal: React.FC<MenuItemModalProps> = ({ item, onClose, isGuestMod
         }).format(price || 0);
     }
 
-    const handleAddToCart = () => {
-        if (isGuestMode) {
-            navigate('/login');
-            onClose();
-            return;
-        }
-        addToCart(item, quantity);
+    const [added, setAdded] = useState(false);
+
+const handleAddToCart = () => {
+    if (isGuestMode) {
+        navigate('/login');
         onClose();
+        return;
     }
+    addToCart(item, quantity);
+    setAdded(true);
+}
+
+const handleGoToCheckout = () => {
+    onClose();
+    navigate('/checkout');
+}
     
     return (
         <div className="fixed inset-0 bg-hungers-green-950/80 backdrop-blur-md z-[150] flex justify-center items-center p-4 sm:p-6" onClick={onClose}>
