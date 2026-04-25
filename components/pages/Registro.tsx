@@ -74,7 +74,15 @@ const Registro: React.FC<RegistroProps> = ({ initialRole = UserRole.Cliente }) =
 
     return (
         <div className="bg-[#fcfdfc] min-h-screen py-8 px-4 flex items-center justify-center">
-            <div className="w-full max-w-md bg-white p-6 md:p-8 rounded-3xl shadow-lg border border-gray-100 animate-fade-in">
+            <div className="w-full max-w-md bg-white p-6 md:p-8 rounded-3xl shadow-lg border border-gray-100 animate-fade-in relative">
+                
+                <button
+                    onClick={() => navigate(-1)}
+                    className="absolute top-4 left-4 text-gray-400 hover:text-hungers-green-900 text-sm font-bold flex items-center gap-1 transition-colors"
+                >
+                    ← Volver
+                </button>
+
                 <div className="text-center mb-6">
                     <Logo onClick={() => navigate('/')} className="h-10 mx-auto mb-4 transform hover:scale-105 transition-transform" />
                     <h2 className="text-2xl font-black text-hungers-green-900 uppercase tracking-tighter">Crea tu cuenta</h2>
