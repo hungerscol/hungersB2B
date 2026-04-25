@@ -51,11 +51,12 @@ const AppContent: React.FC = () => {
   if (authLoading) return null;
 
   const isDashboard = routeLocation.pathname.startsWith('/dashboard');
+  const isAuthPage = ['/login', '/registro', '/superadmin-login'].includes(routeLocation.pathname);
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
-        {!isDashboard && <LocationBanner />}
-        {!isDashboard && <Header />}
+        {!isDashboard && !isAuthPage && <LocationBanner />}
+        {!isDashboard && !isAuthPage && <Header />}
         
         <main className="flex-grow">
           <Suspense fallback={
@@ -88,8 +89,7 @@ const AppContent: React.FC = () => {
           </Suspense>
         </main>
 
-        <Footer />
-        <WhatsAppButton />
+           {!isAuthPage && <Footer />}        <WhatsAppButton />
     </div>
   );
 };
