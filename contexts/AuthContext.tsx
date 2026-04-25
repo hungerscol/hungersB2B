@@ -12,7 +12,8 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { auth } from "../firebase";
+import { collection, addDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
 import { User, UserRole } from "../types";
 import {
   findUserByEmail,
@@ -210,12 +211,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const userCredential = await createUserWithEmailAndPassword(auth, emailLower, password);
       const firebaseUser = userCredential.user;
 
+      // Si es empresa, crear documento en colección companies
+      let companyId: string | undefined;
+      if (role === UserRole.AdminEmpresa && userData.companyName) {
+        const companyDoc = await addDoc(collection(db, 'companies'), {
+          name: userData.companyName,
+          contactEmail: emailLower,
+          totalCredits: 0,
+          createdAt: new Date().toISOString(),
+          adminId: firebaseUser.uid,
+        });
+        companyId = companyDoc.id;
+      }
+
       const newProfile: User = {
         ...userData,
         email: emailLower,
         id: firebaseUser.uid,
         role,
         ...(role === UserRole.Cocinero && { cookId: firebaseUser.uid }),
+        ...(companyId && { companyId, companyName: userData.companyName }),
         verificationStatus: role === UserRole.Cocinero ? "pendiente_verificacion" : "aprobado",
         registrationDate: new Date().toISOString(),
       };
