@@ -94,16 +94,16 @@ const PerfilView: React.FC = () => {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const updatedUser = await updateUser(user.id, formData);
-        if (updatedUser) {
-            updateAuthUser(formData);
-            setFeedback('¡Perfil actualizado!');
-        } else {
-            setFeedback('Error.');
-        }
-        setTimeout(() => setFeedback(''), 3000);
-    };
+    e.preventDefault();
+    try {
+        await updateUser(user.id, formData);
+        updateAuthUser(formData);
+        setFeedback('¡Perfil actualizado!');
+    } catch (err) {
+        setFeedback('Error al guardar.');
+    }
+    setTimeout(() => setFeedback(''), 3000);
+};
     
     const inputStyles = "w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#c1ff72] focus:border-green-700 transition bg-white text-green-900 shadow-sm";
 

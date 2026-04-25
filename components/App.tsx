@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation as useRouteLocation } from 'react-router-dom';
 import { UserRole } from '../types';
