@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Order, Company } from '../../../types.ts';
-import { getAllClients, getOrdersByUserId, getAllCompanies, getEmployeesByCompanyId } from '../../../data.ts';
+import { getAllClients, getOrdersByUserId, getAllCompanies, getEmployeesByCompanyId, uploadInvoicePDF, addInvoice } from '../../../data.ts';
 import InitialsAvatar from './InitialsAvatar.tsx';
 
 type FilterType = 'todos' | 'individuales' | 'empresas';
@@ -33,23 +33,6 @@ const ClientManagement: React.FC = () => {
         setSelectedClient(null);
         const emps = await getEmployeesByCompanyId(company.id);
         setCompanyEmployees(emps);
-    };
-
-    const handleGenerateInvoice = async (company: Company) => {
-        const invoice = {
-            companyId: company.id,
-            companyName: company.name,
-            amount: (company as any).totalCredits || 0,
-            date: new Date().toISOString(),
-            status: 'pendiente',
-            number: `HG-${Date.now()}`,
-        };
-        try {
-            // TODO: Integrar con Siigo API
-            alert(`Factura ${invoice.number} generada para ${company.name}. Integración con Siigo pendiente de configurar.`);
-        } catch (err) {
-            alert('Error al generar factura.');
-        }
     };
 
     const formatCurrency = (price: number, currency: string = 'COP') => {
@@ -141,6 +124,38 @@ const ClientManagement: React.FC = () => {
 
     const CompanyDetailsModal: React.FC = () => {
         if (!selectedCompany) return null;
+        const fileInputRef = useRef<HTMLInputElement>(null);
+        const [isUploading, setIsUploading] = useState(false);
+        const [invoiceAmount, setInvoiceAmount] = useState('');
+        const [invoiceNumber, setInvoiceNumber] = useState(`HG-${Date.now()}`);
+        const [uploadSuccess, setUploadSuccess] = useState(false);
+
+        const handleUploadInvoice = async (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file || !invoiceAmount) {
+                alert('Completa el número y monto de la factura antes de subir el PDF.');
+                return;
+            }
+            setIsUploading(true);
+            try {
+                const pdfUrl = await uploadInvoicePDF(selectedCompany.id, file);
+                await addInvoice({
+                    companyId: selectedCompany.id,
+                    amount: parseFloat(invoiceAmount),
+                    date: new Date().toISOString(),
+                    status: 'pendiente',
+                    number: invoiceNumber,
+                    pdfUrl,
+                } as any);
+                setUploadSuccess(true);
+                alert(`✅ Factura ${invoiceNumber} subida exitosamente para ${selectedCompany.name}.`);
+            } catch (err) {
+                alert('Error al subir la factura.');
+            } finally {
+                setIsUploading(false);
+            }
+        };
+
         return (
             <div className="fixed inset-0 bg-gray-400 bg-opacity-50 z-50 flex justify-center items-center p-4">
                 <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -154,14 +169,49 @@ const ClientManagement: React.FC = () => {
                         <p className="text-sm"><strong>Créditos:</strong> {formatCurrency((selectedCompany as any).totalCredits || 0)}</p>
                         <p className="text-sm"><strong>Empleados:</strong> {companyEmployees.length}</p>
                     </div>
+
+                    {/* Subir Factura */}
+                    <div className="bg-green-50 p-6 rounded-2xl border border-green-100 mb-6">
+                        <h3 className="text-sm font-black text-green-900 uppercase tracking-widest mb-4">🧾 Subir Factura PDF</h3>
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-1">Número de Factura</label>
+                                <input
+                                    type="text"
+                                    value={invoiceNumber}
+                                    onChange={e => setInvoiceNumber(e.target.value)}
+                                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-200"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-1">Monto (COP)</label>
+                                <input
+                                    type="number"
+                                    value={invoiceAmount}
+                                    onChange={e => setInvoiceAmount(e.target.value)}
+                                    placeholder="Ej: 500000"
+                                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-200"
+                                />
+                            </div>
+                        </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf"
+                            onChange={handleUploadInvoice}
+                            className="hidden"
+                        />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading || !invoiceAmount}
+                            className="w-full bg-green-700 text-white px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-green-900 transition-all disabled:opacity-50"
+                        >
+                            {isUploading ? 'Subiendo...' : uploadSuccess ? '✅ Factura subida' : '⬆️ Seleccionar PDF y Subir'}
+                        </button>
+                    </div>
+
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-bold text-green-900">Empleados</h3>
-                        <button
-                            onClick={() => handleGenerateInvoice(selectedCompany)}
-                            className="bg-green-700 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-green-900 transition-all"
-                        >
-                            🧾 Generar Factura
-                        </button>
                     </div>
                     <div className="space-y-2">
                         {companyEmployees.length > 0 ? companyEmployees.map(emp => (
@@ -279,22 +329,14 @@ const ClientManagement: React.FC = () => {
                                 </div>
                             </div>
                             <p className="text-xs text-green-700 mb-4">
-                                Créditos: <span className="font-black">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((company as any).totalCredits || 0)}</span>
+                                Créditos: <span className="font-black">{formatCurrency((company as any).totalCredits || 0)}</span>
                             </p>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleViewCompany(company)}
-                                    className="flex-1 bg-green-700 text-white px-3 py-2 rounded-xl text-xs font-black uppercase hover:bg-green-900 transition-all"
-                                >
-                                    Ver Detalle
-                                </button>
-                                <button
-                                    onClick={() => handleGenerateInvoice(company)}
-                                    className="flex-1 bg-[#c1ff72] text-green-900 px-3 py-2 rounded-xl text-xs font-black uppercase hover:bg-green-200 transition-all"
-                                >
-                                    Facturar
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => handleViewCompany(company)}
+                                className="w-full bg-green-700 text-white px-3 py-2 rounded-xl text-xs font-black uppercase hover:bg-green-900 transition-all"
+                            >
+                                Ver Detalle / Subir Factura
+                            </button>
                         </div>
                     ))}
                     {allCompanies.length === 0 && (
