@@ -423,3 +423,14 @@ export const approveCook = async (cookId: string): Promise<void> => {
 export const rejectCook = async (cookId: string): Promise<void> => {
     await updateDoc(doc(db, 'users', cookId), { verificationStatus: 'rechazado' });
 };
+
+export const uploadInvoicePDF = async (companyId: string, file: File): Promise<string> => {
+    const storageRef = ref(storage, `invoices/${companyId}/${Date.now()}_${file.name}`);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+};
+
+export const addInvoice = async (invoice: Omit<Invoice, 'id'>): Promise<Invoice> => {
+    const docRef = await addDoc(collection(db, 'invoices'), invoice);
+    return { id: docRef.id, ...invoice };
+};
