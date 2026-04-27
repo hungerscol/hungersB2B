@@ -63,6 +63,7 @@ const OrdersManagement: React.FC = () => {
             pagado: 'bg-green-100 text-green-800 border-green-200',
             pendiente: 'bg-yellow-100 text-yellow-800 border-yellow-200',
             rechazado: 'bg-red-100 text-red-800 border-red-200',
+            programado: 'bg-blue-100 text-blue-800 border-blue-200',
         };
         return (
             <span className={`px-3 py-1 text-[10px] font-black uppercase rounded-full border ${styles[status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
@@ -76,8 +77,10 @@ const OrdersManagement: React.FC = () => {
         const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
         const [selectedItem, setSelectedItem] = useState('');
         const [quantity, setQuantity] = useState(1);
+        const [customPrice, setCustomPrice] = useState(0);
         const [notes, setNotes] = useState('');
         const [isSaving, setIsSaving] = useState(false);
+        const [orderStatus, setOrderStatus] = useState<'pagado' | 'programado'>('pagado');
         const [cartItems, setCartItems] = useState<{ menuItem: MenuItem; quantity: number }[]>([]);
 
         useEffect(() => {
@@ -87,12 +90,23 @@ const OrdersManagement: React.FC = () => {
         const handleAddItem = () => {
             const item = menuItems.find(m => m.id === selectedItem);
             if (!item) return;
+            const itemWithPrice = { ...item, price: customPrice || item.price };
             const existing = cartItems.find(c => c.menuItem.id === item.id);
             if (existing) {
-                setCartItems(cartItems.map(c => c.menuItem.id === item.id ? { ...c, quantity: c.quantity + quantity } : c));
+                setCartItems(cartItems.map(c => c.menuItem.id === item.id
+                    ? { ...c, quantity: c.quantity + quantity, menuItem: itemWithPrice }
+                    : c
+                ));
             } else {
-                setCartItems([...cartItems, { menuItem: item, quantity }]);
+                setCartItems([...cartItems, { menuItem: itemWithPrice, quantity }]);
             }
+            setSelectedItem('');
+            setCustomPrice(0);
+            setQuantity(1);
+        };
+
+        const handleRemoveItem = (id: string) => {
+            setCartItems(cartItems.filter(c => c.menuItem.id !== id));
         };
 
         const handleSubmit = async () => {
@@ -107,7 +121,7 @@ const OrdersManagement: React.FC = () => {
                     items: cartItems,
                     total: cartItems.reduce((acc, c) => acc + c.menuItem.price * c.quantity, 0),
                     date: new Date().toISOString(),
-                    status: 'pagado',
+                    status: orderStatus,
                     notes: notes || 'Pedido por WhatsApp',
                 } as any);
                 await fetchData();
@@ -120,7 +134,6 @@ const OrdersManagement: React.FC = () => {
             }
         };
 
-        // Filtrar usuarios que pueden hacer pedidos (excluir SuperAdmin y Cocineros)
         const selectableUsers = clients.filter(c =>
             c.role === 'Cliente' || c.role === 'cliente' ||
             c.role === 'Admin Empresa' || c.role === 'AdminEmpresa'
@@ -145,18 +158,22 @@ const OrdersManagement: React.FC = () => {
                                 <option value="">Seleccionar cliente...</option>
                                 {selectableUsers.map(c => (
                                     <option key={c.id} value={c.id}>
-                                        {c.name} — {c.email} {c.companyName ? `(${c.companyName})` : ''}
+                                        {c.name} — {c.email} {(c as any).companyName ? `(${(c as any).companyName})` : ''}
                                     </option>
                                 ))}
                             </select>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                             <div className="col-span-2">
                                 <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-1">Producto</label>
                                 <select
                                     value={selectedItem}
-                                    onChange={e => setSelectedItem(e.target.value)}
+                                    onChange={e => {
+                                        setSelectedItem(e.target.value);
+                                        const item = menuItems.find(m => m.id === e.target.value);
+                                        if (item) setCustomPrice(item.price);
+                                    }}
                                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-green-200"
                                 >
                                     <option value="">Seleccionar producto...</option>
@@ -164,6 +181,17 @@ const OrdersManagement: React.FC = () => {
                                         <option key={m.id} value={m.id}>{m.name} — {formatCurrency(m.price)}</option>
                                     ))}
                                 </select>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-1">Precio Unitario (COP)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={customPrice}
+                                    onChange={e => setCustomPrice(parseFloat(e.target.value) || 0)}
+                                    className="w-full border border-green-200 bg-green-50 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-green-200 font-bold text-green-900"
+                                    placeholder="Precio preferencial"
+                                />
                             </div>
                             <div>
                                 <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-1">Cantidad</label>
@@ -189,9 +217,15 @@ const OrdersManagement: React.FC = () => {
                             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                                 <h4 className="text-[10px] font-black text-green-700 uppercase tracking-widest mb-3">Resumen del Pedido</h4>
                                 {cartItems.map((c, i) => (
-                                    <div key={i} className="flex justify-between text-sm py-1">
+                                    <div key={i} className="flex justify-between items-center text-sm py-1">
                                         <span>{c.quantity}x {c.menuItem.name}</span>
-                                        <span className="font-bold">{formatCurrency(c.menuItem.price * c.quantity)}</span>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-bold">{formatCurrency(c.menuItem.price * c.quantity)}</span>
+                                            <button
+                                                onClick={() => handleRemoveItem(c.menuItem.id)}
+                                                className="text-red-400 hover:text-red-600 text-xs"
+                                            >✕</button>
+                                        </div>
                                     </div>
                                 ))}
                                 <div className="flex justify-between font-black text-green-900 text-lg pt-3 border-t mt-3">
@@ -200,6 +234,22 @@ const OrdersManagement: React.FC = () => {
                                 </div>
                             </div>
                         )}
+
+                        <div>
+                            <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-1">Estado del Pedido</label>
+                            <div className="flex gap-3">
+                                {(['pagado', 'programado'] as const).map(s => (
+                                    <button
+                                        key={s}
+                                        type="button"
+                                        onClick={() => setOrderStatus(s)}
+                                        className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${orderStatus === s ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-500'}`}
+                                    >
+                                        {s === 'pagado' ? '✅ Pagado' : '📅 Programado'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
                         <div>
                             <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-1">Notas (opcional)</label>
@@ -248,6 +298,18 @@ const OrdersManagement: React.FC = () => {
                     >
                         📱 Nuevo Pedido WhatsApp
                     </button>
+
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-[10px] font-black uppercase text-green-900 outline-none focus:ring-2 focus:ring-[#c1ff72]"
+                    >
+                        <option value="todos">Todos los Estados</option>
+                        <option value="pagado">Pagado</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="programado">Programado</option>
+                        <option value="rechazado">Rechazado</option>
+                    </select>
 
                     <select
                         value={filterCook}
