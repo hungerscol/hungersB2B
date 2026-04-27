@@ -434,3 +434,8 @@ export const addInvoice = async (invoice: Omit<Invoice, 'id'>): Promise<Invoice>
     const docRef = await addDoc(collection(db, 'invoices'), invoice);
     return { id: docRef.id, ...invoice };
 };
+
+export const getAllUsers = async (): Promise<User[]> => {
+    const snap = await getDocs(collection(db, 'users'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() })) as User[];
+};

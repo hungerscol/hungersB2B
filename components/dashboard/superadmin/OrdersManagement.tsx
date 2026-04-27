@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Order, User, MenuItem } from '../../../types.ts';
-import { getAllOrders, getAllClients, getAllCooks, getMenuItemsByLocation, addOrder } from '../../../data.ts';
+import { getAllOrders, getAllUsers, getAllCooks, getMenuItemsByLocation, addOrder } from '../../../data.ts';
 import InitialsAvatar from './InitialsAvatar.tsx';
 
 const OrdersManagement: React.FC = () => {
@@ -18,7 +18,7 @@ const OrdersManagement: React.FC = () => {
         try {
             const [ordersData, clientsData, cooksData] = await Promise.all([
                 getAllOrders(),
-                getAllClients(),
+                getAllUsers(),
                 getAllCooks()
             ]);
             setOrders(ordersData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
@@ -71,13 +71,11 @@ const OrdersManagement: React.FC = () => {
         );
     };
 
-    // Modal para crear pedido manual
     const NewOrderModal: React.FC = () => {
         const [selectedClient, setSelectedClient] = useState('');
         const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
         const [selectedItem, setSelectedItem] = useState('');
         const [quantity, setQuantity] = useState(1);
-        const [total, setTotal] = useState(0);
         const [notes, setNotes] = useState('');
         const [isSaving, setIsSaving] = useState(false);
         const [cartItems, setCartItems] = useState<{ menuItem: MenuItem; quantity: number }[]>([]);
@@ -95,8 +93,6 @@ const OrdersManagement: React.FC = () => {
             } else {
                 setCartItems([...cartItems, { menuItem: item, quantity }]);
             }
-            const newTotal = [...cartItems, { menuItem: item, quantity }].reduce((acc, c) => acc + c.menuItem.price * c.quantity, 0);
-            setTotal(newTotal);
         };
 
         const handleSubmit = async () => {
@@ -124,6 +120,12 @@ const OrdersManagement: React.FC = () => {
             }
         };
 
+        // Filtrar usuarios que pueden hacer pedidos (excluir SuperAdmin y Cocineros)
+        const selectableUsers = clients.filter(c =>
+            c.role === 'Cliente' || c.role === 'cliente' ||
+            c.role === 'Admin Empresa' || c.role === 'AdminEmpresa'
+        );
+
         return (
             <div className="fixed inset-0 bg-gray-400 bg-opacity-50 z-50 flex justify-center items-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -134,15 +136,17 @@ const OrdersManagement: React.FC = () => {
 
                     <div className="space-y-5">
                         <div>
-                            <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-1">Cliente</label>
+                            <label className="text-[10px] font-black text-green-700 uppercase tracking-widest block mb-1">Cliente / Empresa</label>
                             <select
                                 value={selectedClient}
                                 onChange={e => setSelectedClient(e.target.value)}
                                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-green-200"
                             >
                                 <option value="">Seleccionar cliente...</option>
-                                {clients.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name} — {c.email}</option>
+                                {selectableUsers.map(c => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name} — {c.email} {c.companyName ? `(${c.companyName})` : ''}
+                                    </option>
                                 ))}
                             </select>
                         </div>
