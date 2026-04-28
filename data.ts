@@ -296,9 +296,41 @@ export const addOrder = async (order: Omit<Order, 'id'>): Promise<Order> => {
     return { id: docRef.id, ...order };
 };
 
-export const sendOrderConfirmationEmail = async (_orderId: string): Promise<void> => {
-    // Implementar con Firebase Functions o servicio de email
-    console.log('Order confirmation email queued for:', _orderId);
+export const sendOrderConfirmationEmail = async (order: Order, user: User): Promise<void> => {
+    try {
+        const cookEmail = order.items[0]?.menuItem?.cookId 
+            ? (await findUserByEmail('')) // placeholder
+            : null;
+
+        await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${import.meta.env.VITE_RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                from: 'Hungers <sales@hungers.lat>',
+                to: [user.email],
+                subject: `✅ Pedido confirmado #${order.id.slice(-6).toUpperCase()}`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h1 style="color: #2c5234;">¡Tu pedido está confirmado!</h1>
+                        <p>Hola ${user.name},</p>
+                        <p>Tu pedido <strong>#${order.id.slice(-6).toUpperCase()}</strong> ha sido recibido exitosamente.</p>
+                        <h3>Detalle del pedido:</h3>
+                        <ul>
+                            ${order.items.map(item => `<li>${item.quantity}x ${item.menuItem.name} — $${item.menuItem.price * item.quantity}</li>`).join('')}
+                        </ul>
+                        <p><strong>Total: $${order.total.toLocaleString('es-CO')}</strong></p>
+                        <p>¡Buen provecho!</p>
+                        <p>El equipo de Hungers 🥗</p>
+                    </div>
+                `
+            }),
+        });
+    } catch (error) {
+        console.error('Error enviando email:', error);
+    }
 };
 
 // --------------------
