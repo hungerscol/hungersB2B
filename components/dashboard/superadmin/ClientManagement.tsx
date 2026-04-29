@@ -128,7 +128,6 @@ const ClientManagement: React.FC = () => {
         const [isUploading, setIsUploading] = useState(false);
         const [invoiceAmount, setInvoiceAmount] = useState('');
         const [invoiceNumber, setInvoiceNumber] = useState(`HG-${Date.now()}`);
-        const [uploadSuccess, setUploadSuccess] = useState(false);
 
         const handleUploadInvoice = async (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
@@ -147,8 +146,8 @@ const ClientManagement: React.FC = () => {
                     number: invoiceNumber,
                     pdfUrl,
                 } as any);
-                setUploadSuccess(true);
                 alert(`✅ Factura ${invoiceNumber} subida exitosamente para ${selectedCompany.name}.`);
+                setSelectedCompany(null);
             } catch (err) {
                 alert('Error al subir la factura.');
             } finally {
@@ -170,7 +169,6 @@ const ClientManagement: React.FC = () => {
                         <p className="text-sm"><strong>Empleados:</strong> {companyEmployees.length}</p>
                     </div>
 
-                    {/* Subir Factura */}
                     <div className="bg-green-50 p-6 rounded-2xl border border-green-100 mb-6">
                         <h3 className="text-sm font-black text-green-900 uppercase tracking-widest mb-4">🧾 Subir Factura PDF</h3>
                         <div className="grid grid-cols-2 gap-3 mb-3">
@@ -206,7 +204,7 @@ const ClientManagement: React.FC = () => {
                             disabled={isUploading || !invoiceAmount}
                             className="w-full bg-green-700 text-white px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-green-900 transition-all disabled:opacity-50"
                         >
-                            {isUploading ? 'Subiendo...' : uploadSuccess ? '✅ Factura subida' : '⬆️ Seleccionar PDF y Subir'}
+                            {isUploading ? 'Subiendo...' : '⬆️ Seleccionar PDF y Subir'}
                         </button>
                     </div>
 
