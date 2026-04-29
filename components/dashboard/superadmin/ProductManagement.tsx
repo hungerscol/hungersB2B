@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
-import { LocationCode, MenuItem, User, UserRole } from '../../../types.ts';
+import React, { useState, useEffect } from 'react';
+import { LocationCode, MenuItem, User } from '../../../types.ts';
 import { deleteMenuItem, getAllCooks } from '../../../data.ts';
 import { useMenuItems } from '../../../hooks/useMenuItems.ts';
 import Button from '../../Button';
@@ -10,110 +9,100 @@ const ProductManagement: React.FC = () => {
     const [activeTab, setActiveTab] = useState<LocationCode>('BOG');
     const { items: menuItems, loading: isMenusLoading } = useMenuItems(activeTab);
     const [allCooks, setAllCooks] = useState<User[]>([]);
-    const [isCooksLoading, setIsCooksLoading] = useState(true);
     const [editingMenu, setEditingMenu] = useState<MenuItem | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        setIsCooksLoading(true);
-        getAllCooks().then(cooks => {
-            setAllCooks(cooks);
-            setIsCooksLoading(false);
-        });
+        getAllCooks().then(setAllCooks);
     }, []);
 
-    const handleAdd = () => {
-        setEditingMenu(null);
-        setIsModalOpen(true);
-    };
-
-    const handleEdit = (menu: MenuItem) => {
-        setEditingMenu(menu);
-        setIsModalOpen(true);
-    };
-
+    const handleAdd = () => { setEditingMenu(null); setIsModalOpen(true); };
+    const handleEdit = (menu: MenuItem) => { setEditingMenu(menu); setIsModalOpen(true); };
     const handleDelete = async (id: string) => {
-        if (window.confirm('¿Eliminar este platillo permanentemente del catálogo global?')) {
+        if (window.confirm('¿Eliminar este platillo permanentemente?')) {
             await deleteMenuItem(id);
         }
     };
 
-    const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('es-CO', {
-            style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0
-        }).format(val);
-    };
+    const formatCurrency = (val: number) => new Intl.NumberFormat('es-CO', {
+        style: 'currency', currency: 'COP', minimumFractionDigits: 0
+    }).format(val);
 
-    const isLoading = isMenusLoading; // No bloqueamos por los cocineros
+    const filtered = menuItems.filter(item =>
+        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.cookName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
-        <div className="bg-white rounded-[2rem] shadow-xl p-8 border border-gray-100 animate-fade-in">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+        <div className="space-y-6 animate-fade-in">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-green-900 uppercase tracking-tighter">Gestión Global de Productos</h1>
-                    <p className="text-green-700 text-sm mt-1">Sincronización instantánea activada.</p>
+                    <h1 className="text-2xl font-black text-green-900 uppercase tracking-tighter">Gestión de Productos</h1>
+                    <p className="text-green-700 text-xs mt-1">Sincronización en tiempo real activada.</p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4 items-center">
-                    <div className="flex bg-gray-100 p-1 rounded-2xl">
-                        <button 
-                            onClick={() => setActiveTab('BOG')}
-                            className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${activeTab === 'BOG' ? 'bg-white text-green-900 shadow-md' : 'text-gray-400 hover:text-green-700'}`}
-                        >
-                            BOGOTÁ 🇨🇴
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('MDE')}
-                            className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${activeTab === 'MDE' ? 'bg-white text-green-900 shadow-md' : 'text-gray-400 hover:text-green-700'}`}
-                        >
-                            MEDELLÍN 🇨🇴
-                        </button>
-                    </div>
-                    <Button onClick={handleAdd} className="!shadow-xl !py-3 !px-8">+ Nuevo Platillo</Button>
-                </div>
+                <Button onClick={handleAdd} className="!py-2 !px-6 !text-xs">+ Nuevo Platillo</Button>
             </div>
-            
-            {isLoading ? (
+
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex bg-gray-100 p-1 rounded-xl">
+                    {(['BOG', 'MDE'] as LocationCode[]).map(loc => (
+                        <button
+                            key={loc}
+                            onClick={() => setActiveTab(loc)}
+                            className={`px-5 py-2 rounded-lg text-xs font-black transition-all ${activeTab === loc ? 'bg-white text-green-900 shadow-sm' : 'text-gray-400 hover:text-green-700'}`}
+                        >
+                            {loc === 'BOG' ? 'Bogotá 🏙️' : 'Medellín ⛰️'}
+                        </button>
+                    ))}
+                </div>
+                <input
+                    type="text"
+                    placeholder="Buscar platillo o chef..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-green-200"
+                />
+                <span className="text-xs text-gray-400 self-center">{filtered.length} platillos</span>
+            </div>
+
+            {/* Grid */}
+            {isMenusLoading ? (
                 <div className="py-20 text-center flex flex-col items-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-4 border-green-700 border-t-transparent mb-4"></div>
-                    <p className="text-green-800 font-bold uppercase tracking-widest text-[10px]">Conectando con el catálogo global...</p>
+                    <p className="text-green-800 font-bold uppercase tracking-widest text-[10px]">Cargando catálogo...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {menuItems.map((item) => (
-                        <div key={item.id} className="bg-gray-50 rounded-3xl overflow-hidden border border-gray-100 group hover:shadow-2xl transition-all duration-500 flex flex-col">
-                            <div className="relative w-full aspect-video overflow-hidden">
-                                <img 
-                                    key={item.imageUrl} 
-                                    src={item.imageUrl} 
-                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                                    alt={item.name} 
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filtered.map(item => (
+                        <div key={item.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all group flex flex-col">
+                            <div className="relative w-full h-36 overflow-hidden">
+                                <img
+                                    src={item.imageUrl}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    alt={item.name}
                                     referrerPolicy="no-referrer"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/food/400/300';
-                                    }}
+                                    onError={e => { (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/food/400/300'; }}
                                 />
-                                <div className="absolute top-4 right-4 bg-green-900 text-[#c1ff72] px-3 py-1 rounded-full text-[10px] font-black shadow-xl">
+                                <div className="absolute top-2 right-2 bg-green-900 text-[#c1ff72] px-2 py-0.5 rounded-full text-[10px] font-black">
                                     {formatCurrency(item.price)}
                                 </div>
-                                <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm text-green-900 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
-                                    Chef: {item.cookName || 'Asignado'}
-                                </div>
                             </div>
-                            <div className="p-6 flex flex-col flex-grow">
-                                <h3 className="text-lg font-black text-green-900 uppercase tracking-tighter leading-tight mb-2 line-clamp-1">{item.name}</h3>
-                                <p className="text-xs text-green-700 line-clamp-2 italic mb-4">"{item.description}"</p>
-                                <div className="mt-auto pt-4 border-t border-gray-200 flex justify-between items-center gap-2">
-                                    <button 
+                            <div className="p-3 flex flex-col flex-grow">
+                                <p className="text-xs font-black text-green-900 uppercase tracking-tight leading-tight line-clamp-1 mb-1">{item.name}</p>
+                                <p className="text-[10px] text-gray-400 line-clamp-1 mb-2">Chef: {item.cookName || 'Sin asignar'}</p>
+                                <div className="mt-auto flex gap-2">
+                                    <button
                                         onClick={() => handleEdit(item)}
-                                        className="flex-1 bg-green-100 text-green-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#c1ff72] transition-all"
+                                        className="flex-1 bg-green-50 text-green-800 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-[#c1ff72] transition-all"
                                     >
                                         Editar
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => handleDelete(item.id)}
-                                        className="flex-1 bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all"
+                                        className="flex-1 bg-red-50 text-red-500 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all"
                                     >
                                         Eliminar
                                     </button>
@@ -121,9 +110,9 @@ const ProductManagement: React.FC = () => {
                             </div>
                         </div>
                     ))}
-                    {menuItems.length === 0 && (
-                        <div className="col-span-full py-20 text-center bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200">
-                            <p className="text-gray-400 font-medium italic">No hay menús activos en {activeTab}.</p>
+                    {filtered.length === 0 && (
+                        <div className="col-span-full py-20 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                            <p className="text-gray-400 italic text-sm">No hay platillos en {activeTab}.</p>
                         </div>
                     )}
                 </div>
