@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MenuItem, User, UserRole, LocationCode } from '../../../types.ts';
 import { addMenuItem, updateMenuItem, uploadProductImage } from '../../../data.ts';
@@ -11,8 +10,8 @@ interface AddEditMenuModalProps {
     menu: MenuItem | null;
     onClose: () => void;
     onSave: () => void;
-    allCooks?: User[]; // Opcional, usado por el Admin
-    forcedLocation?: LocationCode; // Para asegurar que se cree en la pestaña correcta
+    allCooks?: User[];
+    forcedLocation?: LocationCode;
 }
 
 const AddEditMenuModal: React.FC<AddEditMenuModalProps> = ({ menu, onClose, onSave, allCooks = [], forcedLocation }) => {
@@ -23,7 +22,7 @@ const AddEditMenuModal: React.FC<AddEditMenuModalProps> = ({ menu, onClose, onSa
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [selectedCookId, setSelectedCookId] = useState<string>(menu?.cookId || user?.id || '');
-    
+
     const targetLocation = forcedLocation || menu?.location || globalLocation;
 
     const [formData, setFormData] = useState({
@@ -73,12 +72,11 @@ const AddEditMenuModal: React.FC<AddEditMenuModalProps> = ({ menu, onClose, onSa
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
-
         setIsSaving(true);
 
         try {
             let finalImageUrl = formData.imageUrl;
-            
+
             if (imageFile) {
                 try {
                     finalImageUrl = await uploadProductImage(imageFile, `productos/${Date.now()}_${imageFile.name}`);
@@ -95,11 +93,9 @@ const AddEditMenuModal: React.FC<AddEditMenuModalProps> = ({ menu, onClose, onSa
                 return;
             }
 
-            const targetCook = isAdmin 
-                ? allCooks.find(c => c.id === selectedCookId) 
+            const targetCook = isAdmin
+                ? allCooks.find(c => c.id === selectedCookId)
                 : user;
-
-            const itemCurrency = 'COP' as const;
 
             const sharedData: Omit<MenuItem, 'id' | 'rating'> = {
                 name: formData.name,
@@ -110,20 +106,18 @@ const AddEditMenuModal: React.FC<AddEditMenuModalProps> = ({ menu, onClose, onSa
                 imageUrl: finalImageUrl,
                 ingredients: formData.ingredients.split(',').map(s => s.trim()),
                 availableDate: formData.availableDate,
-                currency: itemCurrency,
+                currency: 'COP',
                 location: targetLocation,
             };
 
-            if (menu) { 
+            if (menu) {
                 await updateMenuItem(menu.id, sharedData);
-            } else { 
+            } else {
                 await addMenuItem({ ...sharedData, location: targetLocation });
             }
-            
+
             setIsSuccess(true);
-            setTimeout(() => {
-                onSave();
-            }, 800);
+            setTimeout(() => { onSave(); }, 800);
 
         } catch (error) {
             console.error("Error al guardar el menú", error);
@@ -131,39 +125,39 @@ const AddEditMenuModal: React.FC<AddEditMenuModalProps> = ({ menu, onClose, onSa
             setIsSaving(false);
         }
     };
-    
-    const inputStyles = "block w-full border border-gray-300 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#c1ff72] focus:border-green-700 bg-white text-green-900 text-sm transition-all";
+
+    const inputStyles = "block w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-[#c1ff72] focus:border-green-700 bg-white text-green-900 text-sm transition-all";
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex justify-center items-center p-4" onClick={onClose}>
-            <div className="bg-white rounded-[2.5rem] shadow-2xl p-6 sm:p-10 w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in" onClick={e => e.stopPropagation()}>
-                
+            <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg max-h-[88vh] overflow-y-auto animate-fade-in" onClick={e => e.stopPropagation()}>
+
                 {isSuccess ? (
-                    <div className="py-20 text-center animate-fade-in flex flex-col items-center">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 text-4xl shadow-inner animate-bounce">✅</div>
-                        <h2 className="text-3xl font-black text-green-900 uppercase tracking-tighter">¡Guardado!</h2>
-                        <p className="text-green-700 mt-2">El catálogo se ha sincronizado correctamente.</p>
+                    <div className="py-16 text-center animate-fade-in flex flex-col items-center">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-3xl">✅</div>
+                        <h2 className="text-2xl font-black text-green-900 uppercase tracking-tighter">¡Guardado!</h2>
+                        <p className="text-green-700 mt-1 text-sm">El catálogo se ha sincronizado.</p>
                     </div>
                 ) : (
                     <>
-                        <div className="flex justify-between items-center mb-8">
-                            <h2 className="text-2xl font-black text-green-900 uppercase tracking-tighter">
+                        <div className="flex justify-between items-center mb-5">
+                            <h2 className="text-xl font-black text-green-900 uppercase tracking-tighter">
                                 {menu ? 'Editar Platillo' : `Nuevo Platillo (${targetLocation})`}
                             </h2>
-                            <button onClick={onClose} className="text-gray-400 hover:text-green-900 text-3xl font-light">&times;</button>
+                            <button onClick={onClose} className="text-gray-400 hover:text-green-900 text-2xl font-light">&times;</button>
                         </div>
-                        
-                        <form onSubmit={handleSubmit} className="space-y-6">
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
                             {imagePreview && (
-                                <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-inner bg-gray-100 border border-gray-100">
-                                    <img src={imagePreview} className="absolute inset-0 w-full h-full object-cover" alt="Preview" referrerPolicy="no-referrer" />
+                                <div className="relative w-full h-44 rounded-xl overflow-hidden bg-gray-100 border border-gray-100">
+                                    <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" referrerPolicy="no-referrer" />
                                     <div className="absolute top-2 left-2 bg-green-900/80 text-white text-[8px] font-black uppercase px-2 py-1 rounded">Vista Previa Real</div>
                                 </div>
                             )}
 
                             {isAdmin && !menu && (
                                 <div>
-                                    <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1.5 ml-1">Asignar a Cocinero</label>
+                                    <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1 ml-1">Asignar a Cocinero</label>
                                     <select name="cookId" value={selectedCookId} onChange={handleChange} className={inputStyles} required>
                                         <option value="">Selecciona un responsable...</option>
                                         {allCooks.map(c => (
@@ -174,37 +168,37 @@ const AddEditMenuModal: React.FC<AddEditMenuModalProps> = ({ menu, onClose, onSa
                             )}
 
                             <div>
-                                <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1.5 ml-1">Nombre del Platillo</label>
+                                <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1 ml-1">Nombre del Platillo</label>
                                 <input type="text" name="name" placeholder="Ej: Lasagna de Berenjena" value={formData.name} onChange={handleChange} required className={inputStyles} />
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-2 ml-1">Cambiar Imagen</label>
-                                <div className="p-4 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                                <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1 ml-1">Cambiar Imagen</label>
+                                <div className="p-3 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50">
                                     <FileInput id="menu-image" label="Seleccionar foto real" onFileChange={handleFileChange} accept="image/*" />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1.5 ml-1">Fecha Disponible</label>
+                                    <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1 ml-1">Fecha Disponible</label>
                                     <input type="date" name="availableDate" value={formData.availableDate} onChange={handleChange} required className={inputStyles} />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1.5 ml-1">Precio Unitario ({'COP'})</label>
+                                    <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1 ml-1">Precio (COP)</label>
                                     <input type="number" name="price" placeholder="0" value={formData.price} onChange={handleChange} required className={inputStyles} />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1.5 ml-1">Descripción de Sabor</label>
-                                <textarea name="description" rows={3} placeholder="Detalla ingredientes..." value={formData.description} onChange={handleChange} required className={`${inputStyles} resize-none`}></textarea>
+                                <label className="block text-[10px] font-black text-green-700 uppercase tracking-widest mb-1 ml-1">Descripción</label>
+                                <textarea name="description" rows={2} placeholder="Detalla ingredientes..." value={formData.description} onChange={handleChange} required className={`${inputStyles} resize-none`}></textarea>
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-8 border-t border-gray-100">
-                                <button type="button" onClick={onClose} className="px-6 py-2 text-sm text-gray-500 hover:text-green-900 font-bold uppercase tracking-widest transition-colors">Cancelar</button>
-                                <Button type="submit" className="!shadow-xl !px-10 !py-4 font-black uppercase tracking-widest" disabled={isSaving}>
-                                    {isSaving ? 'Subiendo...' : 'Guardar Cambios'}
+                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                                <button type="button" onClick={onClose} className="px-5 py-2 text-sm text-gray-500 hover:text-green-900 font-bold uppercase tracking-widest transition-colors">Cancelar</button>
+                                <Button type="submit" className="!px-8 !py-3 font-black uppercase tracking-widest" disabled={isSaving}>
+                                    {isSaving ? 'Guardando...' : 'Guardar'}
                                 </Button>
                             </div>
                         </form>
