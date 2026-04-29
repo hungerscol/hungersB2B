@@ -4,13 +4,11 @@ import { getEmployeesByCompanyId, getRecurringOrdersByCompanyId, getOrdersByUser
 import { User, Company, Order } from '../../../types.ts';
 import Button from '../../Button';
 
-import { 
-    LineChart, 
-    Line, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip, 
+import {
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
     ResponsiveContainer,
     AreaChart,
     Area
@@ -36,7 +34,7 @@ const StatCard: React.FC<{ title: string; value: string; icon: string; children?
 const BuyCreditsModal: React.FC<{ company: Company, user: User, onClose: () => void }> = ({ company, user, onClose }) => {
     const [amount, setAmount] = useState(100000);
     const currency = 'COP';
-    
+
     const firstName = user.name.split(' ')[0] || 'Admin';
     const lastName = user.name.split(' ').slice(1).join(' ') || company.name;
 
@@ -52,18 +50,18 @@ const BuyCreditsModal: React.FC<{ company: Company, user: User, onClose: () => v
                     <h2 className="text-3xl font-black text-green-900 uppercase tracking-tighter">Recargar Créditos</h2>
                     <p className="text-green-700 text-sm mt-2 font-medium">Define el presupuesto para el bienestar de tu equipo.</p>
                 </div>
-                
+
                 <div className="space-y-8">
                     <div>
                         <label className="block text-[10px] font-black text-green-800 uppercase tracking-[0.2em] mb-3 ml-1">Monto a Recargar ({currency})</label>
-                        <input 
-                            type="number" 
-                            value={amount} 
-                            onChange={e => setAmount(Number(e.target.value))} 
-                            min="10000" 
-                            step="10000" 
+                        <input
+                            type="number"
+                            value={amount}
+                            onChange={e => setAmount(Number(e.target.value))}
+                            min="10000"
+                            step="10000"
                             required
-                            className={inputStyles} 
+                            className={inputStyles}
                         />
                     </div>
 
@@ -77,7 +75,6 @@ const BuyCreditsModal: React.FC<{ company: Company, user: User, onClose: () => v
                             <input name="currency" type="hidden" value={currency.toLowerCase()} />
                             <input name="order_description" type="hidden" value={`Compra de Créditos Hungers - ${company.name}`} />
                             <input name="color_base" type="hidden" value="#2c5234" />
-                            
                             <input name="client_email" type="hidden" value={user.email} />
                             <input name="client_phone" type="hidden" value={user.phone || '3000000000'} />
                             <input name="client_firstname" type="hidden" value={firstName} />
@@ -85,13 +82,13 @@ const BuyCreditsModal: React.FC<{ company: Company, user: User, onClose: () => v
                             <input name="client_doctype" type="hidden" value="4" />
                             <input name="client_numdoc" type="hidden" value={user.nit || '1234567890'} />
                             <input name="response_url" type="hidden" value={window.location.origin} />
-                            
+
                             <div className="flex flex-col gap-4">
-                                <input 
-                                    name="Submit" 
-                                    type="submit" 
+                                <input
+                                    name="Submit"
+                                    type="submit"
                                     className="w-full bg-[#de0c3e] text-white font-black py-5 px-8 rounded-full hover:bg-[#b00a31] transition-all transform hover:scale-105 cursor-pointer shadow-xl uppercase tracking-widest text-sm"
-                                    value={`Ir a pagar ${new Intl.NumberFormat().format(amount)} ${currency}`} 
+                                    value={`Ir a pagar ${new Intl.NumberFormat().format(amount)} ${currency}`}
                                 />
                                 <button type="button" onClick={onClose} className="text-green-700 text-xs font-black uppercase tracking-widest hover:text-green-900 transition-colors">Cancelar Operación</button>
                             </div>
@@ -102,7 +99,7 @@ const BuyCreditsModal: React.FC<{ company: Company, user: User, onClose: () => v
             </div>
         </div>
     );
-}
+};
 
 interface DashboardViewProps {
     onNavigate: (view: string) => void;
@@ -114,9 +111,10 @@ const DashboardView: React.FC<Partial<DashboardViewProps>> = ({ onNavigate = () 
     const [employees, setEmployees] = useState<User[]>([]);
     const [recurringOrders, setRecurringOrders] = useState<any[]>([]);
     const [monthlyLunches, setMonthlyLunches] = useState(0);
+    const [weeklyChartData, setWeeklyChartData] = useState<{ day: string; almuerzos: number }[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
-    
+
     const fetchData = useCallback(async () => {
         if (user && user.companyId) {
             setIsLoading(true);
@@ -135,8 +133,10 @@ const DashboardView: React.FC<Partial<DashboardViewProps>> = ({ onNavigate = () 
                 const currentYear = new Date().getFullYear();
                 const ordersPromises = emps.map(employee => getOrdersByUserId(employee.id));
                 const allEmployeeOrders = await Promise.all(ordersPromises);
-                
-                const totalLunches = allEmployeeOrders.flat().reduce((total: number, order: Order) => {
+                const flatOrders = allEmployeeOrders.flat();
+
+                // Contar almuerzos del mes
+                const totalLunches = flatOrders.reduce((total: number, order: Order) => {
                     const orderDate = new Date(order.date);
                     if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
                         return total + (order.items?.length || 0);
@@ -144,6 +144,30 @@ const DashboardView: React.FC<Partial<DashboardViewProps>> = ({ onNavigate = () 
                     return total;
                 }, 0);
                 setMonthlyLunches(totalLunches);
+
+                // Construir datos reales de la semana actual
+                const today = new Date();
+                const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+                const weekData: { day: string; almuerzos: number }[] = [];
+
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(today.getDate() - i);
+                    const dayLabel = dayNames[d.getDay()];
+                    const count = flatOrders.reduce((acc, order) => {
+                        const od = new Date(order.date);
+                        if (
+                            od.getDate() === d.getDate() &&
+                            od.getMonth() === d.getMonth() &&
+                            od.getFullYear() === d.getFullYear()
+                        ) {
+                            return acc + (order.items?.length || 0);
+                        }
+                        return acc;
+                    }, 0);
+                    weekData.push({ day: dayLabel, almuerzos: count });
+                }
+                setWeeklyChartData(weekData);
 
             } catch (error) {
                 console.error("Error al cargar datos del dashboard", error);
@@ -158,18 +182,15 @@ const DashboardView: React.FC<Partial<DashboardViewProps>> = ({ onNavigate = () 
     }, [fetchData]);
 
     if (!user || !user.companyId) return null;
-    
-    const formatCurrency = (amount: number) => {
-         const currency = 'COP';
-         return new Intl.NumberFormat('es-CO', {
-            style: 'currency',
-            currency: currency,
-            minimumFractionDigits: 0
-        }).format(amount);
-    }
-    
+
+    const formatCurrency = (amount: number) => new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+    }).format(amount);
+
     if (isLoading || !company) {
-         return (
+        return (
             <div className="flex justify-center items-center h-64 p-8">
                 <div className="animate-spin h-10 w-10 border-4 border-green-700 border-t-transparent rounded-full"></div>
             </div>
@@ -179,11 +200,11 @@ const DashboardView: React.FC<Partial<DashboardViewProps>> = ({ onNavigate = () 
     return (
         <div className="space-y-8 animate-fade-in">
             <h1 className="text-3xl font-black text-green-900 uppercase tracking-tighter">Resumen Corporativo</h1>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <StatCard title="Créditos de la Empresa" value={formatCurrency(company?.totalCredits || 0)} icon="💰">
-                    <Button 
-                        onClick={() => setIsBuyModalOpen(true)} 
+                    <Button
+                        onClick={() => setIsBuyModalOpen(true)}
                         className="!text-[10px] !py-3 !px-5 !bg-[#c1ff72] !text-green-900 border-none shadow-xl hover:!bg-green-700 hover:!text-white transition-all transform hover:scale-105 font-black uppercase tracking-widest"
                     >
                         + Cargar Créditos
@@ -192,66 +213,40 @@ const DashboardView: React.FC<Partial<DashboardViewProps>> = ({ onNavigate = () 
                 <StatCard title="Colaboradores Activos" value={String(employees.length)} icon="👥">
                     <Button onClick={() => onNavigate('Gestionar Empleados')} className="!text-[10px] !py-2 !px-4 uppercase font-black tracking-widest">Ver equipo</Button>
                 </StatCard>
-                <StatCard title="Almuerzos Consumidos" value={String(monthlyLunches)} icon="🍲">
+                <StatCard title="Almuerzos del Mes" value={String(monthlyLunches)} icon="🍲">
                     <Button onClick={() => onNavigate('Reportes')} className="!text-[10px] !py-2 !px-4 uppercase font-black tracking-widest">Ver detalle</Button>
                 </StatCard>
             </div>
 
-            {/* Gráfico de Métricas en Tiempo Real */}
+            {/* Gráfico con datos reales */}
             <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-100">
                 <div className="flex justify-between items-center mb-8">
                     <div>
-                        <h2 className="text-xl font-black text-green-900 uppercase tracking-tighter">Métricas en Tiempo Real</h2>
-                        <p className="text-xs text-green-600 font-bold uppercase tracking-widest">Consumo de almuerzos por día</p>
+                        <h2 className="text-xl font-black text-green-900 uppercase tracking-tighter">Consumo Últimos 7 Días</h2>
+                        <p className="text-xs text-green-600 font-bold uppercase tracking-widest">Almuerzos por día — datos reales</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
                         <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">En Vivo</span>
                     </div>
                 </div>
-                <div className="h-[300px] w-full">
+                <div className="h-[260px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart
-                            data={[
-                                { day: 'Lun', lunches: 12 },
-                                { day: 'Mar', lunches: 19 },
-                                { day: 'Mie', lunches: 15 },
-                                { day: 'Jue', lunches: 22 },
-                                { day: 'Vie', lunches: monthlyLunches || 18 },
-                                { day: 'Sab', lunches: 5 },
-                                { day: 'Dom', lunches: 2 },
-                            ]}
-                            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                        >
+                        <AreaChart data={weeklyChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorLunches" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#c1ff72" stopOpacity={0.8}/>
-                                    <stop offset="95%" stopColor="#c1ff72" stopOpacity={0}/>
+                                    <stop offset="5%" stopColor="#c1ff72" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#c1ff72" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                            <XAxis 
-                                dataKey="day" 
-                                axisLine={false} 
-                                tickLine={false} 
-                                tick={{ fontSize: 10, fontWeight: 'bold', fill: '#2c5234' }}
-                            />
-                            <YAxis 
-                                axisLine={false} 
-                                tickLine={false} 
-                                tick={{ fontSize: 10, fontWeight: 'bold', fill: '#2c5234' }}
-                            />
-                            <Tooltip 
+                            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold', fill: '#2c5234' }} />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold', fill: '#2c5234' }} allowDecimals={false} />
+                            <Tooltip
                                 contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                                formatter={(v: number) => [`${v} almuerzos`, 'Consumo']}
                             />
-                            <Area 
-                                type="monotone" 
-                                dataKey="lunches" 
-                                stroke="#2c5234" 
-                                strokeWidth={3}
-                                fillOpacity={1} 
-                                fill="url(#colorLunches)" 
-                            />
+                            <Area type="monotone" dataKey="almuerzos" stroke="#2c5234" strokeWidth={3} fillOpacity={1} fill="url(#colorLunches)" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
@@ -306,12 +301,12 @@ const DashboardView: React.FC<Partial<DashboardViewProps>> = ({ onNavigate = () 
                     </div>
                 </div>
             </div>
-            
+
             {isBuyModalOpen && company && user && (
-                <BuyCreditsModal 
-                    company={company} 
+                <BuyCreditsModal
+                    company={company}
                     user={user}
-                    onClose={() => setIsBuyModalOpen(false)} 
+                    onClose={() => setIsBuyModalOpen(false)}
                 />
             )}
         </div>
