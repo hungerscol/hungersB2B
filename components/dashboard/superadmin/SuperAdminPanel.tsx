@@ -12,11 +12,12 @@ const ProductManagement = lazy(() => import('./ProductManagement.tsx'));
 const ImageGenerationIA = lazy(() => import('./ImageGeneration.tsx'));
 const SiteHealth = lazy(() => import('./SiteHealth'));
 const ReportesView = lazy(() => import('./ReportesView.tsx'));
+const CostingTable = lazy(() => import('./CostingTable.tsx'));
 
 const SuperAdminPanel: React.FC = () => {
     const [activeView, setActiveView] = useState('Dashboard');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    
+
     const navItems = [
         { name: 'Dashboard', icon: '📊' },
         { name: 'Pedidos Globales', icon: '🛒' },
@@ -24,12 +25,13 @@ const SuperAdminPanel: React.FC = () => {
         { name: 'Cocineros', icon: '🧑‍🍳' },
         { name: 'Clientes', icon: '👤' },
         { name: 'Reportes', icon: '📈' },
+        { name: 'Costeo', icon: '🧮' },
         { name: 'Categorías', icon: '🏷️' },
         { name: 'Cupones', icon: '🎟️' },
         { name: 'Generador de Imágenes', icon: '🎨' },
         { name: 'Salud del Sitio', icon: '❤️‍🩹' },
     ];
-    
+
     const renderActiveView = () => {
         switch(activeView) {
             case 'Dashboard': return <DashboardView />;
@@ -42,6 +44,7 @@ const SuperAdminPanel: React.FC = () => {
             case 'Generador de Imágenes': return <ImageGenerationIA />;
             case 'Salud del Sitio': return <SiteHealth />;
             case 'Reportes': return <ReportesView />;
+            case 'Costeo': return <CostingTable />;
             default: return <DashboardView />;
         }
     };
@@ -49,7 +52,7 @@ const SuperAdminPanel: React.FC = () => {
     return (
         <div className="flex bg-[#f9fafb] min-h-screen relative overflow-hidden text-green-900">
             {isMobileMenuOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
@@ -60,9 +63,9 @@ const SuperAdminPanel: React.FC = () => {
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
                 md:translate-x-0 md:static md:inset-auto md:w-64 flex-shrink-0
             `}>
-                <Sidebar 
-                    navItems={navItems} 
-                    activeView={activeView} 
+                <Sidebar
+                    navItems={navItems}
+                    activeView={activeView}
                     setActiveView={setActiveView}
                     onClose={() => setIsMobileMenuOpen(false)}
                 />
@@ -77,14 +80,13 @@ const SuperAdminPanel: React.FC = () => {
 
                 <div className="flex-1 overflow-y-auto p-4 md:p-10 bg-gray-50">
                     <div className="max-w-7xl mx-auto">
-                        
-                        {/* BOTÓN VOLVER DINÁMICO */}
+
                         {activeView !== 'Dashboard' && (
-                            <button 
+                            <button
                                 onClick={() => setActiveView('Dashboard')}
                                 className="mb-6 flex items-center gap-2 text-green-700 hover:text-green-900 font-black uppercase text-[10px] tracking-[0.2em] bg-white px-5 py-3 rounded-full border border-gray-100 shadow-sm hover:shadow-md transition-all group animate-fade-in"
                             >
-                                <span className="group-hover:-translate-x-1 transition-transform text-xs">←</span> 
+                                <span className="group-hover:-translate-x-1 transition-transform text-xs">←</span>
                                 Volver al Dashboard
                             </button>
                         )}

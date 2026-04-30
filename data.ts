@@ -471,3 +471,48 @@ export const getAllUsers = async (): Promise<User[]> => {
     const snap = await getDocs(collection(db, 'users'));
     return snap.docs.map(d => ({ id: d.id, ...d.data() })) as User[];
 };
+
+/// ── COSTEO DE PLATOS ──────────────────────────────────────
+export interface Dish {
+    id: string; name: string; category: string;
+    laborCost: number; packagingCost: number; precioVenta: number;
+    ingredients: DishIngredient[];
+}
+export interface DishIngredient {
+    id: string; dishId: string; name: string;
+    qty: number; unit: string; costPer100: number;
+}
+export const fetchDishes = async (): Promise<Dish[]> => {
+    const dishSnap = await getDocs(collection(db, 'dishes'));
+    const dishes = dishSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+    const ingSnap = await getDocs(collection(db, 'dish_ingredients'));
+    const ingredients = ingSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+    return dishes.map(dish => ({
+        id: dish.id, name: dish.name, category: dish.category || 'Almuerzo',
+        laborCost: dish.laborCost || 0, packagingCost: dish.packagingCost || 800,
+        precioVenta: dish.precioVenta || 0,
+        ingredients: ingredients.filter((i: any) => i.dishId === dish.id),
+    }));
+};
+export const createDish = async (data: { name: string; category: string }): Promise<Dish> => {
+    const ref = await addDoc(collection(db, 'dishes'), { ...data, laborCost: 0, packagingCost: 800, precioVenta: 0 });
+    return { id: ref.id, ...data, laborCost: 0, packagingCost: 800, precioVenta: 0, ingredients: [] };
+};
+export const updateDish = async (id: string, fields: Partial<Dish>): Promise<void> => {
+    await updateDoc(doc(db, 'dishes', id), fields as any);
+};
+export const deleteDish = async (id: string): Promise<void> => {
+    const ingSnap = await getDocs(query(collection(db, 'dish_ingredients'), where('dishId', '==', id)));
+    await Promise.all(ingSnap.docs.map(d => deleteDoc(d.ref)));
+    await deleteDoc(doc(db, 'dishes', id));
+};
+export const createIngredient = async (dishId: string, data: Omit<DishIngredient, 'id' | 'dishId'>): Promise<DishIngredient> => {
+    const ref = await addDoc(collection(db, 'dish_ingredients'), { ...data, dishId });
+    return { id: ref.id, dishId, ...data };
+};
+export const updateIngredient = async (id: string, fields: Partial<DishIngredient>): Promise<void> => {
+    await updateDoc(doc(db, 'dish_ingredients', id), fields as any);
+};
+export const deleteIngredient = async (id: string): Promise<void> => {
+    await deleteDoc(doc(db, 'dish_ingredients', id));
+};
