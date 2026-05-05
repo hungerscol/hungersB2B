@@ -25,6 +25,7 @@ const SuperAdminLogin = lazy(() => import('./pages/SuperAdminLogin'));
 const APIDocs = lazy(() => import('./pages/APIDocs'));
 const ImageGeneration = lazy(() => import('./pages/ImageGeneration'));
 const Terminos = lazy(() => import('./pages/Terminos'));
+const PoliticaDatos = lazy(() => import('./pages/PoliticaDatos'));
 
 const AppContent: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -57,7 +58,7 @@ const AppContent: React.FC = () => {
     <div className="bg-white min-h-screen flex flex-col">
         {!isDashboard && !isAuthPage && <LocationBanner />}
         {!isDashboard && !isAuthPage && <Header />}
-        
+
         <main className="flex-grow">
           <Suspense fallback={
             <div className="flex justify-center items-center h-[50vh]">
@@ -90,7 +91,8 @@ const AppContent: React.FC = () => {
           </Suspense>
         </main>
 
-           {!isAuthPage && <Footer />}        <WhatsAppButton />
+        {!isAuthPage && <Footer />}
+        <WhatsAppButton />
     </div>
   );
 };
