@@ -51,7 +51,7 @@ const AppContent: React.FC = () => {
   if (authLoading) return null;
 
   const isDashboard = routeLocation.pathname.startsWith('/dashboard');
-  const isAuthPage = ['/login', '/registro', '/superadmin-login'].includes(routeLocation.pathname);
+  const isAuthPage = ['/login', '/registro', '/superadmin-login', '/tratamiento-de-datos-personales', '/terminos'].includes(routeLocation.pathname);
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
@@ -75,6 +75,7 @@ const AppContent: React.FC = () => {
               <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginCliente onGoToSuperAdmin={() => navigate('/superadmin-login')} />} />
               <Route path="/registro" element={user ? <Navigate to="/dashboard" /> : <Registro />} />
               <Route path="/terminos" element={<Terminos />} />
+              <Route path="/tratamiento-de-datos-personales" element={<PoliticaDatos />} />
               <Route path="/superadmin-login" element={user ? <Navigate to="/dashboard" /> : <SuperAdminLogin onNavigateHome={() => navigate('/')} />} />
 
               {/* Protected Routes */}
