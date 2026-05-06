@@ -90,7 +90,7 @@ const ProblemaSection: React.FC = () => (
             <p className="text-center text-[10px] font-black text-hungers-green-900/30 uppercase tracking-[0.3em] mb-10">Empresas que confían en Hungers</p>
             <div className="flex flex-wrap justify-center items-center gap-12 md:gap-20">
                 <img src={LOGOS.ccb} alt="Cámara de Comercio de Bogotá" className="h-10 w-auto object-contain opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-300" />
-                <img src={LOGOS.powertrain} alt="Powertrain Ventures" className="h-8 w-auto object-contain opacity-60 hover:opacity-100 transition-all duration-300" />
+                <img src={LOGOS.powertrain} alt="Powertrain Ventures" className="h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-all duration-300" />
                 <img src={LOGOS.irrazonables} alt="Irrazonables" className="h-7 w-auto object-contain opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-300" />
                 <img src={LOGOS.alvarez} alt="Álvarez Liévano Laserna" className="h-10 w-auto object-contain opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-300" />
             </div>
