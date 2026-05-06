@@ -92,7 +92,7 @@ const ProblemaSection: React.FC = () => (
                 <img src={LOGOS.ccb} alt="Cámara de Comercio de Bogotá" className="h-10 w-auto object-contain opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-300" />
                 <img src={LOGOS.powertrain} alt="Powertrain Ventures" className="h-14 w-auto object-contain opacity-60 hover:opacity-100 transition-all duration-300" />
                 <img src={LOGOS.irrazonables} alt="Irrazonables" className="h-7 w-auto object-contain opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-300" />
-                <img src={LOGOS.alvarez} alt="Álvarez Liévano Laserna" className="h-10 w-auto object-contain opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-300" />
+                <img src={LOGOS.alvarez} alt="Álvarez Liévano Laserna" className="h-14 w-auto object-contain opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-300" />
             </div>
         </div>
     </section>
