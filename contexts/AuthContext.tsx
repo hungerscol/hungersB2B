@@ -125,6 +125,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             profile = { id: 'user_demo_admin', name: 'Admin Demo', email: emailLower, role: UserRole.AdminEmpresa, companyId: 'company_demo', companyName: 'Empresa Demo S.A.S', registrationDate: new Date().toISOString() };
           } else if (emailLower === "cocinero@demo.com") {
             profile = { id: 'cook_demo', name: 'Maria Rodriguez', email: emailLower, role: UserRole.Cocinero, specialty: 'Comida Casera', verificationStatus: 'aprobado', registrationDate: new Date().toISOString() };
+          } else if (emailLower === "admin@demo.com") {
+            profile = { id: 'user_demo_superadmin', name: 'Admin Maestro Demo', email: emailLower, role: UserRole.SuperAdmin, registrationDate: new Date().toISOString() };
           }
 
           if (profile) {
